@@ -1,4 +1,4 @@
-import type { Point } from '../types'
+import type { MeaningId, Point, WeatherSeg } from '../types'
 
 export function volumeAt(points: Point[], t: number): number {
   if (points.length === 0) return 0
@@ -22,7 +22,7 @@ export function aroc(points: Point[], a: number, b: number): number | null {
   return (volumeAt(points, b) - volumeAt(points, a)) / (b - a)
 }
 
-export function nearly(actual: number, expected: number, tol = 0.051): boolean {
+export function nearly(actual: number, expected: number, tol = 0.51): boolean {
   return Math.abs(actual - expected) <= tol
 }
 
@@ -48,69 +48,33 @@ export function normalizeUnits(raw: string): string {
   ) {
     return 'gal/hr'
   }
-  if (s === '°f/hr' || s === 'f/hr' || s === 'degf/hr' || s === '°f/h') {
-    return '°F/hr'
-  }
   if (s === 'none' || s === 'units' || s === '') return 'none'
   return s
 }
 
-type ParsedInterval = {
-  left: '(' | '['
-  lo: number
-  hi: number
-  right: ')' | ']'
-}
-
-function parseOneInterval(raw: string): ParsedInterval | null {
-  const s = raw.replace(/\s+/g, '').replace(/–/g, '-')
-  if (s.length < 5) return null
-  const leftChar = s[0]
-  const rightChar = s[s.length - 1]
-  if (leftChar !== '(' && leftChar !== '[') return null
-  if (rightChar !== ')' && rightChar !== ']') return null
-  const inner = s.slice(1, -1)
-  const comma = inner.indexOf(',')
-  if (comma < 1) return null
-  const lo = Number(inner.slice(0, comma))
-  const hi = Number(inner.slice(comma + 1))
-  if (!Number.isFinite(lo) || !Number.isFinite(hi)) return null
-  return {
-    left: leftChar === '(' ? '(' : '[',
-    lo,
-    hi,
-    right: rightChar === ')' ? ')' : ']',
-  }
-}
-
-function parseUnion(raw: string): ParsedInterval[] | null {
-  const s = raw
-    .trim()
-    .replace(/\s+/g, '')
-    .replace(/∪/g, 'U')
-    .replace(/union/gi, 'U')
-  if (!s) return null
-  const parts = s.split('U')
-  const parsed: ParsedInterval[] = []
-  for (const part of parts) {
-    const one = parseOneInterval(part)
-    if (!one) return null
-    parsed.push(one)
-  }
-  return parsed
-}
-
-export function intervalsMatch(input: string, expected: string): boolean {
-  const a = parseUnion(input)
-  const b = parseUnion(expected)
-  if (!a || !b || a.length !== b.length) return false
-  const key = (p: ParsedInterval) => `${p.left}:${p.lo}:${p.hi}:${p.right}`
-  const sa = [...a].map(key).sort()
-  const sb = [...b].map(key).sort()
-  return sa.every((k, i) => k === sb[i])
-}
-
 export function formatRate(n: number): string {
+  if (Math.abs(n) < 0.05) return '0'
   if (Number.isInteger(n)) return String(n)
-  return n.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')
+  return n.toFixed(1).replace(/\.0$/, '')
+}
+
+export function meaningFor(rate: number): MeaningId {
+  if (nearly(rate, 0, 0.25)) return 'hold'
+  return rate > 0 ? 'fill' : 'drain'
+}
+
+export function inflowAt(weather: WeatherSeg[], t: number): number {
+  for (const seg of weather) {
+    if (t >= seg.t0 && t < seg.t1) return seg.inflow
+  }
+  const last = weather[weather.length - 1]
+  return last?.inflow ?? 0
+}
+
+export function weatherLabel(inflow: number): string {
+  if (inflow > 10) return 'HEAVY RAIN'
+  if (inflow > 3) return 'RAIN'
+  if (inflow < -6) return 'HARD DRAIN'
+  if (inflow < -1) return 'DRAINING'
+  return 'HOLDING'
 }

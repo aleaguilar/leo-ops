@@ -1,38 +1,31 @@
-# DEMO — verify the three stages
+# DEMO — verify Flood Control
 
-Open the Chromebook URL **https://leo-ops-rates-production.up.railway.app** (or `npm i && npm run dev` locally), then play as Leo. No backend. Wrong answers should never freeze the session. The briefing must show **LEO OPS** and **RATES // average rate of change**.
+Open **https://leo-ops-rates-production.up.railway.app** (or `npm i && npm run dev` locally). The briefing must say **FLOOD CONTROL**, not the old quiz “LEO OPS / RATES” march. Play as Leo. No backend.
 
-## 1. Warm-up (three shots)
+## 1. Briefing
 
-1. Briefing → **ENGAGE**.
-2. Shot 1: `f(2)=10`, `f(8)=28` → **3**, units **none**, meaning **increasing**.
-3. Shot 2: 40 gal at t=1, 16 gal at t=5 → **−6**, **gal/hr**, **net drain**.
-4. Shot 3: graph 10 → 30 over 0–4 hours → **5**, **gal/hr**, **filling**.
-5. Fail on purpose once: enter `3` on shot 2. Expect a one-line reteach (`(16 − 40)/(5 − 1) = −6 gal/hr`), then retry the same shot — not a wall of text.
+Copy is one beat: storm inbound, you run the pumps, rates keep Pinecrest dry. **ENGAGE · Enter** starts Wave 1 immediately. There is no warm-up quiz, slope duel, or boss form.
 
-Fast three-in-a-row (under ~8s each) can show **ARM HARD MODE** / skip.
+## 2. Wave 1 — rate judgment moves the tank
 
-## 2. Cistern Ops (interactive tank)
+1. Watch the graph grow and the tank rise (calm rain, +8 gal/hr from 42 gal).
+2. At ~t = 2 h a **RATE CALL** locks window [0, 2]. ΔV readout should be about +16 gal over 2 h → **8 gal/hr**, units **gal/hr**, sign **+ filling**.
+3. Tap **HOLD** (freeze) or **OPEN DRAIN**. Tank net rate in the HUD must change. HOLD keeps volume flat; DRAIN pulls it down.
+4. Fail on purpose once: enter `8` with units **gal**, or pick **− draining**. Expect a glitch overlay (`UNITS OFFLINE` / `SIGN INVERSION`) and a weak or inverted pump — volume should move the wrong way or barely move, not a text essay.
+5. Two correct calls under ~8s each skip remaining calls on that wave (`HOLD LOCKED` in the HUD).
 
-Graph is the seeded 12-hour cistern (start 20 gal, fill to 80 by t=4, hold through t=8, drain to 40 by t=12).
+Overflow (~80 gal) or dry (~0) fails the wave. **RETRY WAVE** or **AFTER ACTION**.
 
-1. Task 1: click hour chips **0** then **4** (or click the graph). ΔV readout 60 gal, Δt 4 hr. Answer **15**, **gal/hr**, **rain in**.
-2. Task 2: **8** then **12** → **−10**, **gal/hr**, **water out**.
-3. Task 3: any 2-hour slice on the flat top (**4–6** or **6–8**) → **0**, **gal/hr**, **unchanged**.
-4. Fail units: enter 15 with units **gal**. Tank should **glitch** with a full overlay (`UNITS OFFLINE`), a reteach line stays, then you retry.
-5. Fail sign: correct −10 but pick “rain in”. Expect **SIGN INVERSION** glitch, not a lecture.
+## 3. Wave 2 — spike
 
-## 3. Slope Duel (timer)
+Hold weather, then +16 gal/hr rain. First call window is flat (AROC **0**, holding). Second call covers the spike (about **+16 gal/hr**, filling) — **OPEN DRAIN** or the tank climbs out of the 30–70 band.
 
-1. Round 1 prompt is **greater (signed)** AROC: pick **[0, 4]** (15 > −10). Keys: `1` / `2`.
-2. Round 2 **steeper |AROC|**: still [0, 4] because |15| > |10|.
-3. Round 3 **draining faster**: pick **[8, 12]**.
-4. Let a timer hit 0 once: it should mark miss and advance — no stuck overlay. Holding a key must not skip remaining rounds.
+## 4. Wave 3 — Part 6 crisis
 
-Then finish **Boss check** (Part 6): y-int 20 + “already in the cistern”; domain `[0, 12]`; range `[20, 80]`; constant `[4, 8]`; decreasing `[8, 12]`; rates 15 and −10 gal/hr with fill/drain meanings; V(10)=60.
+Uncontrolled weather is the seeded cistern: start 20 gal, **+15 gal/hr** to t = 4, hold to t = 8, **−10 gal/hr** to t = 12. Win by surviving in band with correct AROC calls on those windows — not by filling a five-part worksheet.
 
-On domain/range: chips are **options**, not answers. Tap **[0, 12]** and **[20, 80]** so they highlight, then **Lock**. A miss line is not a modal — edit and Lock again.
+- [0, 2] (or [0, 4]): **15 gal/hr** filling → HOLD or DRAIN so you never hit 80.
+- [4, 6]: **0 gal/hr** holding.
+- [8, 10]: **−10 gal/hr** draining → FILL BOOST if the tank is sliding toward empty.
 
-Debrief should show XP pips, streak, and a one-line tip. Refresh the tab: briefing can **CONTINUE** an unfinished run.
-
-Hard Mode (checkbox or 3-fast unlock) swaps in piecewise duel graphs and a closed-endpoint cistern task.
+After-action shows score (time-in-band + call accuracy) and one tip. Refresh: briefing again, best score remembered.

@@ -1,34 +1,39 @@
 import type { KeyboardEvent, MouseEvent } from 'react'
-import type { Series } from '../types'
+import type { Point } from '../types'
 import { volumeAt } from '../lib/math'
 
 type Props = {
-  series: Pick<Series, 'points' | 'xLabel' | 'yLabel' | 'tMax' | 'vMax'>
+  points: Point[]
+  tMax: number
+  vMax: number
+  xLabel?: string
+  yLabel?: string
   selected?: [number, number] | null
   pending?: number | null
+  playhead?: number | null
+  band?: [number, number] | null
   onPickTime?: (t: number) => void
   interactive?: boolean
-  compact?: boolean
-  highlight?: [number, number] | null
 }
 
 export function RateGraph({
-  series,
+  points,
+  tMax,
+  vMax,
+  xLabel = 'time (hours)',
+  yLabel = 'volume (gal)',
   selected,
   pending,
+  playhead,
+  band,
   onPickTime,
   interactive = false,
-  compact = false,
-  highlight,
 }: Props) {
-  const W = compact ? 320 : 640
-  const H = compact ? 200 : 340
-  const pad = compact
-    ? { l: 40, r: 12, t: 16, b: 36 }
-    : { l: 54, r: 16, t: 18, b: 46 }
+  const W = 640
+  const H = 320
+  const pad = { l: 48, r: 14, t: 16, b: 42 }
   const innerW = W - pad.l - pad.r
   const innerH = H - pad.t - pad.b
-  const { points, tMax, vMax } = series
 
   const xOf = (t: number) => pad.l + (t / tMax) * innerW
   const yOf = (v: number) => pad.t + innerH - (v / vMax) * innerH
@@ -44,49 +49,54 @@ export function RateGraph({
     const rect = svg.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * W
     const tRaw = ((x - pad.l) / innerW) * tMax
-    const t = Math.round(Math.min(tMax, Math.max(0, tRaw)))
+    const t = Math.round(Math.min(tMax, Math.max(0, tRaw)) * 2) / 2
     onPickTime(t)
   }
 
   function handleKey(e: KeyboardEvent<SVGSVGElement>) {
     if (!interactive || !onPickTime) return
-    const current = pending ?? selected?.[1] ?? selected?.[0] ?? 0
+    const current = pending ?? selected?.[1] ?? selected?.[0] ?? playhead ?? 0
     if (e.key === 'ArrowRight') {
       e.preventDefault()
-      onPickTime(Math.min(tMax, current + 1))
+      onPickTime(Math.min(tMax, current + 0.5))
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault()
-      onPickTime(Math.max(0, current - 1))
+      onPickTime(Math.max(0, current - 0.5))
     }
   }
 
   const windowPair = selected
-  let riseRun: { x1: number; y1: number; x2: number; y2: number; va: number; vb: number } | null =
-    null
-  if (windowPair) {
+  let riseRun: { x1: number; y1: number; x2: number; y2: number } | null = null
+  if (windowPair && points.length > 0) {
     const [a, b] = windowPair[0] <= windowPair[1] ? windowPair : [windowPair[1], windowPair[0]]
     const va = volumeAt(points, a)
     const vb = volumeAt(points, b)
-    riseRun = { x1: xOf(a), y1: yOf(va), x2: xOf(b), y2: yOf(vb), va, vb }
+    riseRun = { x1: xOf(a), y1: yOf(va), x2: xOf(b), y2: yOf(vb) }
   }
 
-  const hi = highlight
-    ? highlight[0] <= highlight[1]
-      ? highlight
-      : [highlight[1], highlight[0]]
-    : null
+  const bandLo = band ? Math.min(band[0], band[1]) : null
+  const bandHi = band ? Math.max(band[0], band[1]) : null
 
   return (
     <svg
       viewBox={`0 0 ${W} ${H}`}
       role={interactive ? 'application' : 'img'}
-      aria-label={`${series.yLabel} versus ${series.xLabel}`}
+      aria-label={`${yLabel} versus ${xLabel}`}
       tabIndex={interactive ? 0 : undefined}
       onClick={handleClick}
       onKeyDown={handleKey}
       className={`w-full ${interactive ? 'cursor-crosshair' : ''}`}
     >
       <rect x="0" y="0" width={W} height={H} fill="#0c1118" rx="10" />
+      {bandLo != null && bandHi != null && (
+        <rect
+          x={pad.l}
+          y={yOf(bandHi)}
+          width={innerW}
+          height={Math.max(2, yOf(bandLo) - yOf(bandHi))}
+          fill="rgba(94, 224, 160, 0.08)"
+        />
+      )}
       {ticksT.map((t) => (
         <line
           key={`vt-${t}`}
@@ -109,14 +119,27 @@ export function RateGraph({
           strokeWidth="1"
         />
       ))}
-      {hi && (
-        <rect
-          x={xOf(hi[0])}
-          y={pad.t}
-          width={Math.max(2, xOf(hi[1]) - xOf(hi[0]))}
-          height={innerH}
-          fill="rgba(240, 180, 41, 0.12)"
-        />
+      {bandLo != null && bandHi != null && (
+        <>
+          <line
+            x1={pad.l}
+            x2={pad.l + innerW}
+            y1={yOf(bandLo)}
+            y2={yOf(bandLo)}
+            stroke="#5ee0a0"
+            strokeOpacity="0.45"
+            strokeDasharray="5 4"
+          />
+          <line
+            x1={pad.l}
+            x2={pad.l + innerW}
+            y1={yOf(bandHi)}
+            y2={yOf(bandHi)}
+            stroke="#5ee0a0"
+            strokeOpacity="0.45"
+            strokeDasharray="5 4"
+          />
+        </>
       )}
       {windowPair && (
         <rect
@@ -128,20 +151,29 @@ export function RateGraph({
               xOf(Math.min(windowPair[0], windowPair[1])),
           )}
           height={innerH}
-          fill="rgba(62, 224, 197, 0.10)"
+          fill="rgba(62, 224, 197, 0.12)"
         />
       )}
-      <polyline
-        fill="none"
-        stroke="#3ee0c5"
-        strokeWidth={compact ? 2 : 2.6}
-        points={poly}
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-      {points.map((p) => (
-        <circle key={`${p.t}-${p.v}`} cx={xOf(p.t)} cy={yOf(p.v)} r={compact ? 3 : 4} fill="#3ee0c5" />
-      ))}
+      {poly.length > 0 && (
+        <polyline
+          fill="none"
+          stroke="#3ee0c5"
+          strokeWidth="2.5"
+          points={poly}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+      )}
+      {playhead != null && (
+        <line
+          x1={xOf(playhead)}
+          x2={xOf(playhead)}
+          y1={pad.t}
+          y2={pad.t + innerH}
+          stroke="#f0b429"
+          strokeWidth="1.6"
+        />
+      )}
       {riseRun && (
         <>
           <line
@@ -152,24 +184,6 @@ export function RateGraph({
             stroke="#f0b429"
             strokeWidth="2"
             strokeDasharray="5 4"
-          />
-          <line
-            x1={riseRun.x2}
-            y1={riseRun.y1}
-            x2={riseRun.x2}
-            y2={riseRun.y2}
-            stroke="#ff4d6d"
-            strokeWidth="1.5"
-            strokeDasharray="3 3"
-          />
-          <line
-            x1={riseRun.x1}
-            y1={riseRun.y1}
-            x2={riseRun.x2}
-            y2={riseRun.y1}
-            stroke="#8b9bb4"
-            strokeWidth="1.5"
-            strokeDasharray="3 3"
           />
           <circle cx={riseRun.x1} cy={riseRun.y1} r="5" fill="#f0b429" />
           <circle cx={riseRun.x2} cy={riseRun.y2} r="5" fill="#f0b429" />
@@ -189,7 +203,7 @@ export function RateGraph({
         <text
           key={`tl-${t}`}
           x={xOf(t)}
-          y={H - 14}
+          y={H - 16}
           textAnchor="middle"
           fill="#8b9bb4"
           fontSize="11"
@@ -213,24 +227,24 @@ export function RateGraph({
       ))}
       <text
         x={pad.l + innerW / 2}
-        y={H - 2}
+        y={H - 3}
         textAnchor="middle"
         fill="#8b9bb4"
         fontSize="10"
         fontFamily="IBM Plex Sans, sans-serif"
       >
-        {series.xLabel}
+        {xLabel}
       </text>
       <text
-        x="14"
+        x="12"
         y={pad.t + innerH / 2}
         fill="#8b9bb4"
         fontSize="10"
         fontFamily="IBM Plex Sans, sans-serif"
-        transform={`rotate(-90 14 ${pad.t + innerH / 2})`}
+        transform={`rotate(-90 12 ${pad.t + innerH / 2})`}
         textAnchor="middle"
       >
-        {series.yLabel}
+        {yLabel}
       </text>
     </svg>
   )

@@ -1,10 +1,10 @@
-# Leo Ops — Rates
+# Flood Control (Leo Ops — Rates)
 
-A ~15 minute Algebra 2 Honors mission on **average rate of change**. Built for Leo (9th grade, Gulliver High School, Pinecrest, FL): sharp, easily bored, computer-led — not a worksheet.
+A ~5 minute **operator** session on **average rate of change**. Built for Leo (9th grade, Gulliver High School, Pinecrest, FL). Rates are the weapon that keeps a cistern in band — not a quiz march.
 
-No accounts. Everything runs in the browser. Progress (XP, streak, last tip, in-progress session) is stored in `localStorage` on this Chromebook.
+No accounts. Progress (best score, wins, Hard Mode) is stored in `localStorage` on this Chromebook.
 
-## What a session teaches
+## What it teaches
 
 Average rate of change is the slope of the secant through two times:
 
@@ -12,22 +12,18 @@ Average rate of change is the slope of the secant through two times:
 (f(b) − f(a)) / (b − a)
 ```
 
-Every rate answer also demands **units** (usually `gal/hr`) and a **sign story** (+ filling, − draining, 0 holding). Interval notation shows up where it supports the cistern: domain, range, constant / decreasing windows.
+Every rate call demands **units** (`gal/hr`) and a **sign story** (+ filling, − draining, 0 holding). A wrong read does not print a red essay — it fires a weak or inverted pump and the tank moves.
 
-The boss check is shaped like **Topic 1 Test Review, PART 6** (rainwater cistern): y-intercept meaning, domain/range, constant vs decreasing, AROC from t = 0 to 4 and t = 8 to 12, volume at t = 10.
+Crisis wave is the **Topic 1 Test Review, PART 6** cistern:
 
-Seeded cistern (piecewise linear, PDF-style axes 0–12 h, 0–80 gal):
+| t (hr) | weather (gal/hr) | V if you never pump |
+|--------|------------------|---------------------|
+| 0 | +15 | 20 |
+| 4 | 0 (hold) | 80 |
+| 8 | −10 | 80 |
+| 12 | | 40 |
 
-| t (hr) | V (gal) |
-|--------|---------|
-| 0 | 20 |
-| 2 | 50 |
-| 4 | 80 |
-| 8 | 80 |
-| 10 | 60 |
-| 12 | 40 |
-
-AROC [0, 4] = **15 gal/hr** (filling). AROC [8, 12] = **−10 gal/hr** (draining). Constant on **[4, 8]**. V(10) = **60**.
+AROC [0, 4] = **15 gal/hr**. AROC [4, 8] = **0**. AROC [8, 12] = **−10 gal/hr**. Safe band **30–70 gal**. Overflow at 80 or dry at 0 fails the wave.
 
 ## How Alejandro can open it for Leo
 
@@ -35,7 +31,15 @@ AROC [0, 4] = **15 gal/hr** (filling). AROC [8, 12] = **−10 gal/hr** (draining
 
 **https://leo-ops-rates-production.up.railway.app**
 
-That is a public HTTPS page. Bookmark it. Progress stays in this Chromebook’s browser (`localStorage`).
+Bookmark it. Best run stays on this Chromebook.
+
+### How to play (dad card)
+
+1. **ENGAGE.** Storm inbound. You run the pumps.
+2. Watch volume vs time and the tank. Green band is 30–70 gal.
+3. When **RATE CALL** hits, lock a time window (or keep the one highlighted). Compute ΔV/Δt.
+4. Enter the number, tap **gal/hr**, tap the sign, then **OPEN DRAIN / HOLD / FILL BOOST**. Correct call = full pump. Wrong sign/units/number = weak or inverted pump — the tank shows it.
+5. Three waves: calm fill, spike rain, Part 6 crisis. Two fast correct calls skip the rest of that wave. Score = time-in-band + accuracy.
 
 ### Redeploy later (after you change the mission)
 
@@ -73,18 +77,17 @@ npm run preview
 
 `dist/` is the same static site the Railway Function serves from the bucket.
 
-### Session flow (~15 min)
+### Session flow (~5 min)
 
-1. **Briefing** — formula, no lecture
-2. **Warm-up** — 3 AROC shots (wrong → one-sentence reteach, retry)
-3. **Cistern Ops** — pick time windows, compute ΔV/Δt, units + sign. Wrong sign/units glitches the tank
-4. **Slope Duel** — 12-second calls: greater vs steeper vs draining faster
-5. **Boss check** — Part 6 cistern application
-6. **Debrief** — Rate Sense / Units / Sign Meaning / Interval Notation XP, streak, one-line next-session tip
+1. **Briefing** — one line, ENGAGE
+2. **Wave 1 CALM FILL** — steady rain, read the rise
+3. **Wave 2 SPIKE RAIN** — hold, then a dump
+4. **Wave 3 CRISIS** — Part 6 cistern weather
+5. **After-action** — score, time-in-band, one tip
 
-Three correct answers in a row, fast, unlocks **Hard Mode** (piecewise / closed endpoints) or skip remaining work in that stage.
+Keyboard: Enter to engage. On a call, tap the graph to set the window, then the pump buttons.
 
-Keyboard: Enter to engage, number keys on duel (1 / 2 or A / D), hour chips on the cistern, arrows when the graph is focused.
+Hard Mode (unlocked after a win): piecewise rain on wave 1, tighter call clock, no ΔV readout — read endpoints off the graph.
 
 ## Scripts
 
@@ -96,4 +99,4 @@ Keyboard: Enter to engage, number keys on duel (1 / 2 or A / D), hour chips on t
 | `python3 scripts/push-railway-dist.py` | PUT `dist/` to the live Function (`LEO_OPS_UPLOAD_TOKEN`) |
 | `python3 scripts/pack-railway-assets.py` | gzip+base64 `dist/` into env chunks (legacy fallback) |
 
-See `DEMO.md` for how to verify the three main stages.
+See `DEMO.md` for how to verify the operator loop.
