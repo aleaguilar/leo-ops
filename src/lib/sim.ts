@@ -185,7 +185,9 @@ export function tick(state: OpsState, dtHours: number): OpsState {
   if (v < 0) v = 0
 
   const last = history[history.length - 1]
-  if (!last || t - last.t >= 0.08 || Math.abs(v - last.v) > 1.2) {
+  if (history.length <= 1) {
+    history = [history[0] ?? { t: 0, v }, { t, v }]
+  } else if (t - last.t >= 0.08 || Math.abs(v - last.v) > 1.2) {
     history = [...history, { t, v }]
   } else {
     history = [...history.slice(0, -1), { t, v }]
