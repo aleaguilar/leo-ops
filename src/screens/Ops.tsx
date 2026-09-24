@@ -2,7 +2,9 @@ import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { CallConsole } from '../components/CallConsole'
 import { CisternTank } from '../components/CisternTank'
 import { Hud } from '../components/Hud'
+import { ModeBar } from '../components/ModeBar'
 import { RateGraph, snapWindow } from '../components/RateGraph'
+import { Reinforce, WhyGate } from '../components/WhyGate'
 import { formatRate, parseNumber } from '../lib/math'
 import {
   advanceWave,
@@ -14,14 +16,24 @@ import {
   tick,
   type OpsState,
 } from '../lib/sim'
-import type { MeaningId, PumpKind } from '../types'
+import type { CallResult, MeaningId, PumpKind } from '../types'
+import type { WhyChip, WhyJudgment } from '../lib/why'
 
 type Props = {
   initial: OpsState
   onFinished: (state: OpsState) => void
+  onBack: () => void
 }
 
-export function Ops({ initial, onFinished }: Props) {
+const WHY_CHIPS: WhyChip[] = [
+  { id: 'aroc', label: 'AROC is momentum on that window — I sized to the sign', sound: true },
+  { id: 'band', label: 'Risk band: the tape was shoving the mark toward a rail', sound: true },
+  { id: 'guess', label: 'Hit whatever looked green', sound: false },
+]
+
+const WHY_KEYS = ['aroc', 'average', 'secant', 'momentum', 'band', 'window', 'delta', 'slope', 'pts/hr', 'sign']
+
+export function Ops({ initial, onFinished, onBack }: Props) {
   const [state, setState] = useReducer(
     (cur: OpsState, next: OpsState | ((s: OpsState) => OpsState)) =>
       typeof next === 'function' ? next(cur) : next,
@@ -34,17 +46,30 @@ export function Ops({ initial, onFinished }: Props) {
 
   const [pending, setPending] = useState<number | null>(null)
   const [rate, setRate] = useState('')
-  const [units, setUnits] = useState<string | null>('gal/hr')
+  const [units, setUnits] = useState<string | null>('pts/hr')
   const [meaning, setMeaning] = useState<MeaningId | null>(null)
+  const [pendingWhy, setPendingWhy] = useState<CallResult | null>(null)
+  const [judgment, setJudgment] = useState<WhyJudgment | null>(null)
+  const whySeen = useRef(0)
+  const paused = pendingWhy != null || judgment != null
 
   useEffect(() => {
     if (state.call) {
       setRate('')
-      setUnits('gal/hr')
+      setUnits('pts/hr')
       setMeaning(null)
       setPending(null)
     }
   }, [state.call?.spec.at, state.waveIndex])
+
+  useEffect(() => {
+    if (!state.lastCall) return
+    if (state.stats.total <= whySeen.current) return
+    whySeen.current = state.stats.total
+    if (!Number.isFinite(state.lastCall.entered)) return
+    setPendingWhy(state.lastCall)
+    setJudgment(null)
+  }, [state.lastCall, state.stats.total])
 
   useEffect(() => {
     if (state.glitch === 'none') return
@@ -55,7 +80,7 @@ export function Ops({ initial, onFinished }: Props) {
   }, [state.glitch, state.stats.total])
 
   useEffect(() => {
-    const live = state.status === 'running' || state.status === 'calling'
+    const live = (state.status === 'running' || state.status === 'calling') && !paused
     if (!live) return
     let last = performance.now()
     let raf = 0
@@ -71,7 +96,7 @@ export function Ops({ initial, onFinished }: Props) {
     }
     raf = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(raf)
-  }, [state.status === 'running' || state.status === 'calling', state.waveIndex])
+  }, [paused, state.waveIndex])
 
   useEffect(() => {
     if (state.status === 'won') {
@@ -111,9 +136,13 @@ export function Ops({ initial, onFinished }: Props) {
   const wave = state.wave
   const selected = state.call?.window ?? null
   const inBand = state.v >= wave.band[0] && state.v <= wave.band[1]
+  const action = pendingWhy
+    ? `${pendingWhy.pump === 'drain' ? 'Cut' : pendingWhy.pump === 'fill' ? 'Scale-in' : 'Hold'} · AROC ${formatRate(pendingWhy.entered)} pts/hr`
+    : ''
 
   return (
     <div className="min-h-svh">
+      <ModeBar title="Trading Desk" onBack={onBack} />
       <Hud state={state} />
       <div className="mx-auto grid max-w-6xl gap-4 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_220px]">
         <div className="min-w-0">
@@ -150,19 +179,19 @@ export function Ops({ initial, onFinished }: Props) {
               className="engage mt-4 rounded-md bg-[#3ee0c5] px-5 py-2.5 text-sm font-semibold text-[#07090d]"
               onClick={() => setState((s) => beginWave(s))}
             >
-              OPEN CHANNEL
+              OPEN TAPE
             </button>
           </div>
         )}
 
-        {state.status === 'running' && !state.call && (
+        {state.status === 'running' && !state.call && !paused && (
           <p className="mono text-sm text-[#8b9bb4]">
-            Watching weather{state.rushed ? ' — hold locked, riding it out' : ''}. {wave.name}.
-            Band is {inBand ? 'green' : 'off'} at {formatRate(state.v)} gal.
+            Watching tape{state.rushed ? ' — hold locked, riding it out' : ''}. {wave.name}.
+            Band is {inBand ? 'green' : 'off'} at {formatRate(state.v)} pts.
           </p>
         )}
 
-        {state.status === 'calling' && state.call && (
+        {state.status === 'calling' && state.call && !paused && (
           <CallConsole
             points={state.history}
             window={state.call.window}
@@ -177,10 +206,20 @@ export function Ops({ initial, onFinished }: Props) {
           />
         )}
 
-        {state.status === 'waveClear' && (
+        {judgment && (
+          <Reinforce
+            judgment={judgment}
+            onContinue={() => {
+              setJudgment(null)
+              setPendingWhy(null)
+            }}
+          />
+        )}
+
+        {state.status === 'waveClear' && !paused && (
           <div className="rounded-lg border border-[#3ee0c5]/40 bg-[#101722] p-5">
             <p className="mono text-xs text-[#3ee0c5]">WAVE CLEAR</p>
-            <p className="mt-2 text-[#e8eef6]">Cistern held. Next cell is inbound.</p>
+            <p className="mt-2 text-[#e8eef6]">Book held. Next tape is inbound.</p>
             <button
               type="button"
               className="engage mt-4 rounded-md bg-[#3ee0c5] px-5 py-2.5 text-sm font-semibold text-[#07090d]"
@@ -195,15 +234,15 @@ export function Ops({ initial, onFinished }: Props) {
           </div>
         )}
 
-        {state.status === 'lost' && (
+        {state.status === 'lost' && !paused && (
           <div className="rounded-lg border border-[#ff4d6d]/50 bg-[#2a0d14] p-5">
             <p className="mono tracking-widest text-[#ff4d6d]">
-              {state.failReason === 'dry' ? 'CISTERN DRY' : 'OVERFLOW — FLOOD'}
+              {state.failReason === 'dry' ? 'BOOK WIPED' : 'BLOWN RAIL — 80'}
             </p>
             <p className="mt-2 text-sm text-[#e8eef6]">
               {state.failReason === 'dry'
-                ? 'Volume hit empty. Pinecrest loses pressure.'
-                : 'Volume hit 80 gal. The neighborhood takes the water.'}
+                ? 'Mark hit empty. Simulated book is gone — no real money, just a failed read.'
+                : 'Mark hit 80. Risk band failed. Simulated book only.'}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <button
@@ -224,10 +263,23 @@ export function Ops({ initial, onFinished }: Props) {
           </div>
         )}
 
-        {state.status === 'won' && (
-          <p className="mono text-sm text-[#3ee0c5]">Crisis held. Filing after-action…</p>
+        {state.status === 'won' && !paused && (
+          <p className="mono text-sm text-[#3ee0c5]">Tape held. Filing after-action…</p>
         )}
       </div>
+
+      {pendingWhy && !judgment && (
+        <WhyGate
+          actionLabel={action}
+          actionCorrect={pendingWhy.correct}
+          chips={WHY_CHIPS}
+          keywords={WHY_KEYS}
+          strong="Yes. AROC is (f(b) − f(a)) / (b − a) — the momentum of the book on that window. You size cut / hold / scale-in to that sign, then to the risk band."
+          weak="The size happened to work. Name the window: subtract marks, divide by hours, then the sign tells you cut vs scale-in."
+          wrong="Wrong AROC (number, pts/hr, or sign) weakens or inverts the order. The book pays — not a red X on a quiz."
+          onDone={setJudgment}
+        />
+      )}
     </div>
   )
 }

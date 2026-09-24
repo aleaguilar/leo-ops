@@ -1,31 +1,38 @@
-# DEMO — verify Flood Control
+# DEMO — Leo Ops start menu + skins
 
-Open **https://leo-ops-rates-production.up.railway.app** (or `npm i && npm run dev` locally). The briefing must say **FLOOD CONTROL**, not the old quiz “LEO OPS / RATES” march. Play as Leo. No backend.
+Open **https://leo-ops-rates-production.up.railway.app** (or `npm i && npm run dev`). You should see **Leo Ops** with three subjects: Math · History · Biology. Every card opens something.
 
-## 1. Briefing
+## Start menu
 
-Copy is one beat: storm inbound, you run the pumps, rates keep Pinecrest dry. **ENGAGE · Enter** starts Wave 1 immediately. There is no warm-up quiz, slope duel, or boss form.
+- Math: Classic Rates, Trading Desk, Classic Transforms, Route Editor, Classic Piecewise, District Rules
+- History: Vocab docket, Transfer Hearing, Reading checks, World Map: Ur, Venn + claim, Scout Report
+- Biology: Monomer drills, Forge Bench, Flash ID, Loot ID, Group ↔ property, Mod Decoder
 
-## 2. Wave 1 — rate judgment moves the tank
+Interactive titles are the skins. Classic titles stay academic.
 
-1. Watch the graph grow and the tank rise (calm rain, +8 gal/hr from 42 gal).
-2. At ~t = 2 h a **RATE CALL** locks window [0, 2]. ΔV readout should be about +16 gal over 2 h → **8 gal/hr**, units **gal/hr**, sign **+ filling**.
-3. Tap **HOLD** (freeze) or **OPEN DRAIN**. Tank net rate in the HUD must change. HOLD keeps volume flat; DRAIN pulls it down.
-4. Fail on purpose once: enter `8` with units **gal**, or pick **− draining**. Expect a glitch overlay (`UNITS OFFLINE` / `SIGN INVERSION`) and a weak or inverted pump — volume should move the wrong way or barely move, not a text essay.
-5. Two correct calls under ~8s each skip remaining calls on that wave (`HOLD LOCKED` in the HUD).
+## Trading Desk (Rates Interactive)
 
-Overflow (~80 gal) or dry (~0) fails the wave. **RETRY WAVE** or **AFTER ACTION**.
+1. Open **Trading Desk**. Briefing says fake pts, no deposits, AROC is momentum, risk band 30–70.
+2. Wave 1 OPEN TAPE: mark climbs. Call window ~[0, 2] → about **8 pts/hr**, units **pts/hr**, **+ momentum**, then **Hold** or **Cut**.
+3. After the order, **Why did you choose that?** → lock a reason → reinforce, then tape resumes.
+4. Wrong units (`pts`) or wrong sign → glitch overlay and a weak/inverted order. Book moves the wrong way.
+5. Blow 80 or wipe 0 fails. Menu always returns to the start screen.
 
-## 3. Wave 2 — spike
+Crisis wave is still the Part 6 weather (+15 / 0 / −10) as a simulated book.
 
-Hold weather, then +16 gal/hr rain. First call window is flat (AROC **0**, holding). Second call covers the spike (about **+16 gal/hr**, filling) — **OPEN DRAIN** or the tank climbs out of the 30–70 band.
+## Route Editor / District Rules
 
-## 4. Wave 3 — Part 6 crisis
+- Route Editor: cyan path vs yellow drop. Shift / stretch / flip, then **Drop package** + WHY.
+- District Rules: Pitch / Midtown / Docks. Wrong piece adds wanted stars (flagged delivery only).
 
-Uncontrolled weather is the seeded cistern: start 20 gal, **+15 gal/hr** to t = 4, hold to t = 8, **−10 gal/hr** to t = 12. Win by surviving in band with correct AROC calls on those windows — not by filling a five-part worksheet.
+## Transfer Hearing / Ur map / Scout
 
-- [0, 2] (or [0, 4]): **15 gal/hr** filling → HOLD or DRAIN so you never hit 80.
-- [4, 6]: **0 gal/hr** holding.
-- [8, 10]: **−10 gal/hr** draining → FILL BOOST if the tank is sliding toward empty.
+- Hearing: enter an exhibit, face opposing counsel, WHY.
+- Ur: game-map pins, tag one-God vs pantheon.
+- Scout: share vs change for the third tradition.
 
-After-action shows score (time-in-band + call accuracy) and one tip. Refresh: briefing again, best score remembered.
+## Forge Bench / Mod Decoder
+
+- three.js molecules (SVG fallback if WebGL is off).
+- Forge: dehydrate vs hydrolyze + WHY.
+- Mod Decoder: mix vs oil + WHY.

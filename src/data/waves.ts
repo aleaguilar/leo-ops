@@ -6,8 +6,8 @@ export const WAVES: Wave[] = [
   {
     id: 'calm',
     code: 'W1',
-    name: 'CALM FILL',
-    brief: 'Steady rain. Read the rise, then decide.',
+    name: 'OPEN TAPE',
+    brief: 'Steady bid. Read the climb, then size the book.',
     tMax: 6,
     vMax: 80,
     v0: 42,
@@ -24,8 +24,8 @@ export const WAVES: Wave[] = [
   {
     id: 'spike',
     code: 'W2',
-    name: 'SPIKE RAIN',
-    brief: 'Hold, then a cell dumps on Pinecrest. Catch the jump.',
+    name: 'VOLUME SPIKE',
+    brief: 'Tape flat, then a dump of size. Catch the jump.',
     tMax: 7,
     vMax: 80,
     v0: 50,
@@ -45,8 +45,8 @@ export const WAVES: Wave[] = [
   {
     id: 'crisis',
     code: 'W3',
-    name: 'CRISIS',
-    brief: 'Part 6 cistern: fill 15, hold, then −10 drain. Stay in band.',
+    name: 'CRISIS TAPE',
+    brief: 'Part 6 book: +15, flat, then −10. Stay inside the risk band.',
     tMax: 12,
     vMax: 80,
     v0: 20,
@@ -69,8 +69,8 @@ export const WAVES: Wave[] = [
 
 export const HARD_CALM: Wave = {
   ...WAVES[0],
-  name: 'CALM · PIECEWISE',
-  brief: 'Corner in the rain. Average uses the window endpoints, not the steep piece.',
+  name: 'OPEN · PIECEWISE',
+  brief: 'Corner on the tape. Average uses the window endpoints, not the steep piece.',
   weather: [
     { t0: 0, t1: 2, inflow: 12 },
     { t0: 2, t1: 6, inflow: 2 },
@@ -87,12 +87,12 @@ export function waveFor(index: number, hard: boolean): Wave {
   return base
 }
 
-export const UNIT_OPTIONS = ['gal/hr', 'gal', 'hr'] as const
+export const UNIT_OPTIONS = ['pts/hr', 'pts', 'hr'] as const
 
 export const MEANING_OPTIONS: { id: 'fill' | 'hold' | 'drain'; label: string }[] = [
-  { id: 'fill', label: '+ filling' },
-  { id: 'hold', label: '0 holding' },
-  { id: 'drain', label: '− draining' },
+  { id: 'fill', label: '+ momentum up' },
+  { id: 'hold', label: '0 flat' },
+  { id: 'drain', label: '− momentum down' },
 ]
 
 export const PUMP_OPTIONS: {
@@ -100,7 +100,7 @@ export const PUMP_OPTIONS: {
   label: string
   detail: string
 }[] = [
-  { id: 'drain', label: 'OPEN DRAIN', detail: 'Push water out' },
-  { id: 'hold', label: 'HOLD', detail: 'Match inflow — freeze V' },
-  { id: 'fill', label: 'FILL BOOST', detail: 'Add volume' },
+  { id: 'drain', label: 'Cut', detail: 'Dump size — mark falls' },
+  { id: 'hold', label: 'Hold', detail: 'Match the tape so the mark freezes' },
+  { id: 'fill', label: 'Scale-in', detail: 'Add size — mark climbs' },
 ]

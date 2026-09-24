@@ -21,7 +21,7 @@ export function RateGraph({
   tMax,
   vMax,
   xLabel = 'time (hours)',
-  yLabel = 'volume (gal)',
+  yLabel = 'mark (pts)',
   selected,
   pending,
   playhead,

@@ -339,7 +339,7 @@ export function submitCall(state: OpsState, input: SubmitInput): OpsState {
   const trueRate = aroc(state.history, window[0], window[1]) ?? 0
   const timedOut = Boolean(input.timedOut)
   const numberOk = !timedOut && Number.isFinite(input.rate) && nearly(input.rate, trueRate)
-  const unitsOk = !timedOut && normalizeUnits(input.units) === 'gal/hr'
+  const unitsOk = !timedOut && normalizeUnits(input.units) === 'rate/hr'
   const signOk = !timedOut && input.meaning === meaningFor(trueRate)
   const correct = numberOk && unitsOk && signOk
   const elapsed = state.call ? Date.now() - state.call.openedAt : CALL_LIMIT_MS
@@ -351,21 +351,21 @@ export function submitCall(state: OpsState, input: SubmitInput): OpsState {
   if (timedOut) {
     quality = 'none'
     glitch = 'window'
-    glitchMsg = 'No call. Weather keeps the tank.'
+    glitchMsg = 'No call. Tape keeps the book.'
   } else if (correct) {
     quality = 'full'
   } else if (!signOk && numberOk) {
     quality = 'inverted'
     glitch = 'sign'
-    glitchMsg = `Sign is the story. True AROC ${formatRate(trueRate)} gal/hr — pump inverted.`
+    glitchMsg = `Sign is the story. True AROC ${formatRate(trueRate)} pts/hr — order inverted.`
   } else if (!unitsOk && numberOk) {
     quality = 'weak'
     glitch = 'units'
-    glitchMsg = 'Units offline. Gallons over hours is gal/hr — pump at 34%.'
+    glitchMsg = 'Units offline. Points over hours is pts/hr — size at 34%.'
   } else {
     quality = Math.sign(input.rate || 0) === Math.sign(trueRate) || trueRate === 0 ? 'weak' : 'inverted'
     glitch = 'value'
-    glitchMsg = `Secant missed. (${formatRate(volumeAt(state.history, window[1]))} − ${formatRate(volumeAt(state.history, window[0]))}) / ${formatRate(window[1] - window[0])} = ${formatRate(trueRate)} gal/hr.`
+    glitchMsg = `Secant missed. (${formatRate(volumeAt(state.history, window[1]))} − ${formatRate(volumeAt(state.history, window[0]))}) / ${formatRate(window[1] - window[0])} = ${formatRate(trueRate)} pts/hr.`
   }
 
   const inflow = inflowAt(state.wave.weather, state.t)
@@ -463,22 +463,22 @@ export function pickTip(state: {
   won: boolean
 }): string {
   if (state.failReason === 'overflow') {
-    return 'Positive AROC means filling. Open drain before the brim — 80 gal is a flood.'
+    return 'Positive AROC is upward momentum. Cut or hold before the mark slams the 80 rail.'
   }
   if (state.failReason === 'dry') {
-    return 'Negative AROC means draining. Fill boost or the cistern goes empty.'
+    return 'Negative AROC is downward momentum. Scale-in or the book wipes at 0.'
   }
   if (state.lastGlitch === 'units') {
-    return 'Units ride the fraction: gallons over hours → gal/hr, not gal.'
+    return 'Units ride the fraction: points over hours → pts/hr, not pts.'
   }
   if (state.lastGlitch === 'sign') {
-    return 'Sign is the story. Minus = net water out over that window.'
+    return 'Sign is the story. Minus = net mark out over that window — cut vs scale-in flips.'
   }
   if (state.won && state.acc >= 0.8) {
-    return 'Operational. Hard Mode: piecewise corners — average uses endpoints, not the steep piece.'
+    return 'Book survived. Hard Mode: piecewise corners — average uses endpoints, not the steep piece.'
   }
   if (state.acc < 0.5) {
-    return 'Lock two times, subtract volumes in that order, divide. Then name gal/hr and the sign.'
+    return 'Lock two times, subtract marks in that order, divide. Then name pts/hr and the sign.'
   }
-  return 'The pump only hits full power if the rate call matches the window you locked.'
+  return 'The order only hits full size if the rate call matches the window you locked.'
 }

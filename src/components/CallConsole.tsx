@@ -40,19 +40,19 @@ export function CallConsole({
   return (
     <div className="rounded-lg border border-[#3ee0c5]/40 bg-[#101722] p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="mono text-xs tracking-[0.2em] text-[#f0b429]">RATE CALL</p>
+        <p className="text-xs uppercase tracking-wide text-[#f0b429]">Your call</p>
         <p className="mono text-xs text-[#8b9bb4]">
           window [{formatRate(a)}, {formatRate(b)}]
         </p>
       </div>
       <p className="mt-2 text-sm text-[#c9d4e5]">
-        Read the secant, then pick a pump. Wrong rate → weak or inverted pumps.
+        Read the secant, then size the book. Wrong AROC → weak or inverted orders — P&amp;L pays.
       </p>
       {showDelta && (
         <p className="mono mt-2 text-sm text-[#3ee0c5]">
-          V({formatRate(a)}) = {formatRate(va)} · V({formatRate(b)}) = {formatRate(vb)} · ΔV{' '}
+          M({formatRate(a)}) = {formatRate(va)} · M({formatRate(b)}) = {formatRate(vb)} · ΔM{' '}
           {dv >= 0 ? '+' : ''}
-          {formatRate(dv)} gal · Δt {formatRate(dt)} hr
+          {formatRate(dv)} pts · Δt {formatRate(dt)} hr
         </p>
       )}
       {!showDelta && (
@@ -136,7 +136,7 @@ export function CallConsole({
       </div>
       {live != null && showDelta && (
         <p className="sr-only">
-          True average rate {formatRate(live)} gallons per hour
+          True average rate {formatRate(live)} points per hour
         </p>
       )}
     </div>

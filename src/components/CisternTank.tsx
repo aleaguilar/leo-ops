@@ -108,7 +108,7 @@ export function CisternTank({
           fontSize="12"
           fontFamily="IBM Plex Mono, monospace"
         >
-          {Math.round(volume)} gal
+          {Math.round(volume)} pts
         </text>
         <text
           x="80"
@@ -118,7 +118,7 @@ export function CisternTank({
           fontSize="9"
           fontFamily="IBM Plex Sans, sans-serif"
         >
-          {out ? 'OUT OF BAND' : 'SAFE BAND 30–70'}
+          {out ? 'OUT OF BAND' : 'RISK BAND 30–70'}
         </text>
       </svg>
       {banner && (

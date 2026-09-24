@@ -4,9 +4,10 @@ import type { Lifetime } from '../types'
 type Props = {
   life: Lifetime
   onStart: (hard: boolean) => void
+  onBack: () => void
 }
 
-export function Briefing({ life, onStart }: Props) {
+export function Briefing({ life, onStart, onBack }: Props) {
   const [hard, setHard] = useState(life.hardModeUnlocked && life.wins > 0)
 
   useEffect(() => {
@@ -22,23 +23,24 @@ export function Briefing({ life, onStart }: Props) {
       <div className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-16">
         <div>
           <p className="mono text-xs tracking-[0.35em] text-[#f0b429]">
-            PINECREST · CISTERN 04 · LIVE
+            SIM BOOK · FAKE PTS · NO DEPOSITS
           </p>
           <h1 className="mt-3 text-5xl font-bold tracking-tight text-[#e8eef6] md:text-6xl">
-            FLOOD CONTROL
+            TRADING DESK
           </h1>
-          <p className="mono mt-2 text-lg text-[#3ee0c5]">LEO OPS // rates as the weapon</p>
+          <p className="mono mt-2 text-lg text-[#3ee0c5]">LEO OPS // AROC is momentum</p>
         </div>
 
         <div className="rounded-lg border border-[#243044] bg-[#101722]/90 p-5">
           <p className="text-[17px] leading-relaxed text-[#c9d4e5]">
-            Storm inbound. You run the pumps. Average rate of change keeps this
-            neighborhood from flooding.
+            Live tape. You size the book. Average rate of change is the momentum of the
+            position — miss it and P&amp;L eats the mistake.
           </p>
           <p className="mono mt-4 text-sm text-[#3ee0c5]">(f(b) − f(a)) / (b − a)</p>
           <p className="mt-3 text-sm text-[#8b9bb4]">
-            Scrub a window. Call the rate — number, gal/hr, sign. Then drain, hold, or
-            fill. Miss the read and the pump hits wrong. Overflow or dry = fail.
+            Scrub a window. Call the rate — number, pts/hr, sign. Then cut, hold, or
+            scale-in. Wrong AROC weakens or inverts the order. Blow the 80 rail or wipe
+            at 0 = session over. Risk band 30–70. Simulated points only.
           </p>
         </div>
 
@@ -68,7 +70,14 @@ export function Briefing({ life, onStart }: Props) {
             onClick={() => onStart(hard)}
             className="engage rounded-md bg-[#3ee0c5] px-6 py-3 text-sm font-semibold tracking-wide text-[#07090d]"
           >
-            ENGAGE · Enter
+            Open desk · Enter
+          </button>
+          <button
+            type="button"
+            onClick={onBack}
+            className="ml-3 rounded-md border border-[#243044] px-5 py-3 text-sm text-[#8b9bb4]"
+          >
+            Menu
           </button>
         </div>
       </div>

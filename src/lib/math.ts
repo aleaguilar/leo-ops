@@ -42,11 +42,12 @@ export function normalizeUnits(raw: string): string {
     s === 'gal/h' ||
     s === 'gph' ||
     s === 'gallons/hour' ||
-    s === 'gallonsperhour' ||
-    s === 'galperhr' ||
-    s === 'galperhour'
+    s === '$/hr' ||
+    s === '$/h' ||
+    s === 'usd/hr' ||
+    s === 'pts/hr'
   ) {
-    return 'gal/hr'
+    return 'rate/hr'
   }
   if (s === 'none' || s === 'units' || s === '') return 'none'
   return s
@@ -71,10 +72,10 @@ export function inflowAt(weather: WeatherSeg[], t: number): number {
   return last?.inflow ?? 0
 }
 
-export function weatherLabel(inflow: number): string {
-  if (inflow > 10) return 'HEAVY RAIN'
-  if (inflow > 3) return 'RAIN'
-  if (inflow < -6) return 'HARD DRAIN'
-  if (inflow < -1) return 'DRAINING'
-  return 'HOLDING'
+export function tapeLabel(inflow: number): string {
+  if (inflow > 10) return 'HEAVY BID'
+  if (inflow > 3) return 'BID'
+  if (inflow < -6) return 'HARD SELL'
+  if (inflow < -1) return 'OFFER'
+  return 'FLAT'
 }

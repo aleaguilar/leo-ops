@@ -1,78 +1,72 @@
-import { useCallback, useState } from 'react'
-import { AfterAction } from './screens/AfterAction'
-import { Briefing } from './screens/Briefing'
-import { Ops } from './screens/Ops'
-import { beginWave, pickTip, scoreOf, startRun, type OpsState } from './lib/sim'
-import { defaultLifetime, loadLifetime, recordRun } from './lib/storage'
-import type { Lifetime, Stage } from './types'
-
-function readLife(): Lifetime {
-  return typeof localStorage === 'undefined' ? defaultLifetime() : loadLifetime()
-}
+import { useState } from 'react'
+import type { ModeId } from './catalog'
+import { Menu } from './screens/Menu'
+import { ClassicRates } from './modes/classic-rates/ClassicApp'
+import { TradingDesk } from './modes/trading/TradingDesk'
+import {
+  ClaimClassic,
+  ForgeClassic,
+  GroupClassic,
+  IdClassic,
+  IslamClassic,
+  PieceClassic,
+  UrClassic,
+  XformClassic,
+} from './modes/Classics'
+import { RouteEditor } from './modes/transforms/RouteEditor'
+import { DistrictRules } from './modes/piecewise/DistrictRules'
+import { TransferHearing } from './modes/history/TransferHearing'
+import { UrMap } from './modes/history/UrMap'
+import { ScoutReport } from './modes/history/ScoutReport'
+import { ForgeBench } from './modes/biology/ForgeBench'
+import { LootId } from './modes/biology/LootId'
+import { ModDecoder } from './modes/biology/ModDecoder'
 
 export default function App() {
-  const [life, setLife] = useState<Lifetime>(readLife)
-  const [stage, setStage] = useState<Stage>('briefing')
-  const [ops, setOps] = useState<OpsState | null>(null)
-  const [tip, setTip] = useState(life.lastTip)
+  const [mode, setMode] = useState<ModeId | null>(null)
+  const back = () => setMode(null)
 
-  const start = useCallback((hard: boolean) => {
-    setOps(beginWave(startRun(hard)))
-    setStage('ops')
-  }, [])
+  if (!mode) return <Menu onPlay={setMode} />
 
-  const finish = useCallback((finalState: OpsState) => {
-    const { band, acc, score } = scoreOf(finalState.stats)
-    const won = finalState.status === 'won'
-    const nextTip = pickTip({
-      failReason: finalState.failReason,
-      lastGlitch: finalState.lastCall
-        ? finalState.lastCall.correct
-          ? 'none'
-          : !finalState.lastCall.unitsOk
-            ? 'units'
-            : !finalState.lastCall.signOk
-              ? 'sign'
-              : 'value'
-        : finalState.glitch,
-      acc,
-      won,
-    })
-    setTip(nextTip)
-    setLife((l) =>
-      recordRun(l, {
-        score,
-        band,
-        won,
-        hard: finalState.hard,
-        tip: nextTip,
-      }),
-    )
-    setOps(finalState)
-    setStage('afteraction')
-  }, [])
-
-  switch (stage) {
-    case 'briefing':
-      return <Briefing life={life} onStart={start} />
-    case 'ops':
-      return ops ? <Ops initial={ops} onFinished={finish} /> : <Briefing life={life} onStart={start} />
-    case 'afteraction':
-      return ops ? (
-        <AfterAction
-          state={ops}
-          tip={tip}
-          bestScore={Math.max(life.bestScore, scoreOf(ops.stats).score)}
-          onAgain={() => {
-            setOps(null)
-            setStage('briefing')
-          }}
-        />
-      ) : (
-        <Briefing life={life} onStart={start} />
-      )
+  switch (mode) {
+    case 'rates-classic':
+      return <ClassicRates onBack={back} />
+    case 'rates-flood':
+      return <TradingDesk onBack={back} />
+    case 'xform-classic':
+      return <XformClassic onBack={back} />
+    case 'xform-forge':
+      return <RouteEditor onBack={back} />
+    case 'piece-classic':
+      return <PieceClassic onBack={back} />
+    case 'piece-path':
+      return <DistrictRules onBack={back} />
+    case 'hist-claim-classic':
+      return <ClaimClassic onBack={back} />
+    case 'hist-claim-play':
+      return <TransferHearing onBack={back} />
+    case 'hist-ur-classic':
+      return <UrClassic onBack={back} />
+    case 'hist-ur-play':
+      return <UrMap onBack={back} />
+    case 'hist-islam-classic':
+      return <IslamClassic onBack={back} />
+    case 'hist-islam-play':
+      return <ScoutReport onBack={back} />
+    case 'bio-forge-classic':
+      return <ForgeClassic onBack={back} />
+    case 'bio-forge-play':
+      return <ForgeBench onBack={back} />
+    case 'bio-id-classic':
+      return <IdClassic onBack={back} />
+    case 'bio-id-play':
+      return <LootId onBack={back} />
+    case 'bio-group-classic':
+      return <GroupClassic onBack={back} />
+    case 'bio-group-play':
+      return <ModDecoder onBack={back} />
     default: {
-      const _never: never = stage
+      const _never: never = mode
       return _never
     }
   }
