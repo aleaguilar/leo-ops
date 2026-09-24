@@ -1,5 +1,7 @@
 # Leo Ops
 
+Play it live on a Chromebook: **https://leo-ops-rates-production.up.railway.app**. This is Leo’s gamified tutor.
+
 Chromebook sessions for Leo (Gulliver, 9th). Three subjects — **Math · History · Biology** — each with **Classic** (short academic checks) and **Interactive** (live system + a WHY gate after you commit).
 
 No accounts. Scores and tips stay in `localStorage` on this Chromebook.
