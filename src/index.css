@@ -94,7 +94,7 @@ input {
 }
 
 .glitching {
-  animation: tank-glitch 0.7s steps(2, end);
+  animation: tank-glitch 1.4s steps(2, end);
 }
 
 @keyframes pulse-cyan {

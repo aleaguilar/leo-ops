@@ -63,7 +63,7 @@ type ParsedInterval = {
 }
 
 function parseOneInterval(raw: string): ParsedInterval | null {
-  const s = raw.replace(/\s+/g, '')
+  const s = raw.replace(/\s+/g, '').replace(/–/g, '-')
   if (s.length < 5) return null
   const leftChar = s[0]
   const rightChar = s[s.length - 1]

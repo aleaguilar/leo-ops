@@ -30,44 +30,38 @@ export function SlopeDuel({
   const [leftSec, setLeftSec] = useState(limit)
   const [locked, setLocked] = useState(false)
   const answered = useRef(false)
-
+  const pickReadyAt = useRef(0)
   const pickRef = useRef<(side: 'left' | 'right') => void>(() => undefined)
 
   useEffect(() => {
-    setLeftSec(limit)
-    setLocked(false)
+    if (done) return
     answered.current = false
-  }, [round.id, session.duelIndex, limit])
-
-  useEffect(() => {
-    if (done || locked) return
+    setLocked(false)
+    setLeftSec(limit)
+    pickReadyAt.current = Date.now() + 400
+    const started = Date.now()
     const id = window.setInterval(() => {
-      setLeftSec((s) => {
-        if (s <= 1) {
-          window.clearInterval(id)
-          return 0
-        }
-        return s - 1
+      const remain = Math.max(0, limit - Math.floor((Date.now() - started) / 1000))
+      setLeftSec(remain)
+      if (remain > 0) return
+      window.clearInterval(id)
+      if (answered.current) return
+      answered.current = true
+      setLocked(true)
+      onGrade({
+        correct: false,
+        fast: false,
+        glitch: 'value',
+        glitchMsg: 'Time. Compute (y₂−y₁)/(x₂−x₁) — don’t vibe it.',
       })
-    }, 1000)
+      window.setTimeout(() => onAdvanceIndex(), 800)
+    }, 200)
     return () => window.clearInterval(id)
-  }, [round.id, session.duelIndex, done, locked])
-
-  useEffect(() => {
-    if (leftSec !== 0 || answered.current || done) return
-    answered.current = true
-    setLocked(true)
-    onGrade({
-      correct: false,
-      fast: false,
-      glitch: 'value',
-      glitchMsg: 'Time. Compute (y₂−y₁)/(x₂−x₁) — don’t vibe it.',
-    })
-    window.setTimeout(() => onAdvanceIndex(), 700)
-  }, [leftSec, done, onAdvanceIndex, onGrade])
+  }, [round.id, session.duelIndex, limit, done, onAdvanceIndex, onGrade])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      if (e.repeat) return
       if (e.key === '1' || e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') {
         pickRef.current('left')
       } else if (e.key === '2' || e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') {
@@ -79,7 +73,8 @@ export function SlopeDuel({
   }, [])
 
   function pick(side: 'left' | 'right') {
-    if (locked || answered.current || done) return
+    if (done || locked || answered.current) return
+    if (Date.now() < pickReadyAt.current) return
     answered.current = true
     setLocked(true)
     const ok = side === round.correct
@@ -90,7 +85,7 @@ export function SlopeDuel({
       glitch: ok ? undefined : 'value',
       glitchMsg: ok ? undefined : failCopy(round.mode),
     })
-    window.setTimeout(() => onAdvanceIndex(), 650)
+    window.setTimeout(() => onAdvanceIndex(), 700)
   }
   pickRef.current = pick
 

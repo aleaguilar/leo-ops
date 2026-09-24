@@ -108,11 +108,13 @@ type IntervalProps = {
   value: string
   onChange: (s: string) => void
   preset?: string[]
+  label: string
 }
 
-export function IntervalField({ value, onChange, preset = [] }: IntervalProps) {
+export function IntervalField({ value, onChange, preset = [], label }: IntervalProps) {
   return (
     <div className="flex flex-col gap-1">
+      <span className="text-sm text-[#e8eef6]">{label}</span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -120,21 +122,30 @@ export function IntervalField({ value, onChange, preset = [] }: IntervalProps) {
         placeholder="[0, 12]"
         autoComplete="off"
         spellCheck={false}
+        aria-label={label}
       />
       {preset.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {preset.map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => onChange(p)}
-              className="mono rounded border border-[#243044] px-2 py-1 text-[11px] text-[#8b9bb4] hover:text-[#3ee0c5]"
-            >
-              {p}
-            </button>
-          ))}
+          {preset.map((p) => {
+            const on = value.replace(/\s+/g, '') === p.replace(/\s+/g, '')
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => onChange(p)}
+                className={`mono rounded border px-2 py-1 text-[11px] ${
+                  on
+                    ? 'border-[#3ee0c5] bg-[#3ee0c5] text-[#07090d]'
+                    : 'border-[#243044] text-[#8b9bb4] hover:text-[#3ee0c5]'
+                }`}
+              >
+                {p}
+              </button>
+            )
+          })}
         </div>
       )}
+      <p className="text-[11px] text-[#8b9bb4]">Tap a chip or type interval notation, then Lock.</p>
     </div>
   )
 }

@@ -106,20 +106,22 @@ export function CisternOps({
       return
     }
     if (normalizeUnits(units ?? '') !== task.units) {
+      setNote('Need gal/hr — gallons over hours.')
       onGrade({
         correct: false,
         fast: false,
         glitch: 'units',
-        glitchMsg: 'Need gal/hr — gallons over hours.',
+        glitchMsg: 'UNITS OFFLINE — gallons over hours → gal/hr.',
       })
       return
     }
     if (meaning !== task.meaningId) {
+      setNote('Sign is fill / drain / hold. Match the window.')
       onGrade({
         correct: false,
         fast: false,
         glitch: 'sign',
-        glitchMsg: 'Sign is fill / drain / hold. Match the window.',
+        glitchMsg: 'SIGN INVERSION — match fill / drain / hold to the window.',
       })
       return
     }

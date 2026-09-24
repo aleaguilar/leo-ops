@@ -64,14 +64,19 @@ export function BossCheck({ session, onGrade, onAdvanceIndex, onFinish }: Props)
       </div>
       <div className="rounded-lg border border-[#243044] bg-[#101722] p-4">
         <BossForm
+          key={item.id}
           kind={item.kind}
           onPass={pass}
           onFail={fail}
+          onEdit={() => setNote(null)}
         />
         {note && (
-          <p className="mt-3 rounded border border-[#ff4d6d]/40 bg-[#2a0d14] px-3 py-2 text-sm">
-            {note}
-          </p>
+          <div className="mt-3 rounded border border-[#ff4d6d]/40 bg-[#2a0d14] px-3 py-2 text-sm">
+            <p>{note}</p>
+            <p className="mt-1 mono text-[11px] text-[#8b9bb4]">
+              Fields stay live — fix the answer and Lock again. This is not a dead end.
+            </p>
+          </div>
         )}
       </div>
     </div>
@@ -82,10 +87,12 @@ function BossForm({
   kind,
   onPass,
   onFail,
+  onEdit,
 }: {
   kind: (typeof BOSS_ITEMS)[number]['kind']
   onPass: (skills: GradePayload['skills']) => void
   onFail: (msg: string, glitch?: GradePayload['glitch']) => void
+  onEdit: () => void
 }) {
   const [yint, setYint] = useState('')
   const [yMean, setYMean] = useState<string | null>(null)
@@ -124,7 +131,10 @@ function BossForm({
             Y-intercept (gallons)
             <input
               value={yint}
-              onChange={(e) => setYint(e.target.value)}
+              onChange={(e) => {
+                onEdit()
+                setYint(e.target.value)
+              }}
               inputMode="decimal"
               className="mono rounded-md border border-[#243044] bg-[#0c1118] px-3 py-2"
             />
@@ -134,7 +144,10 @@ function BossForm({
               <button
                 type="button"
                 key={m.id}
-                onClick={() => setYMean(m.id)}
+                onClick={() => {
+                  onEdit()
+                  setYMean(m.id)
+                }}
                 className={`rounded-md border px-3 py-2 text-left text-sm ${
                   yMean === m.id
                     ? 'border-[#3ee0c5] bg-[#3ee0c5]/15'
@@ -145,7 +158,7 @@ function BossForm({
               </button>
             ))}
           </div>
-          <button className="rounded-md bg-[#3ee0c5] px-4 py-2 text-sm font-semibold text-[#07090d]">
+          <button type="submit" className="rounded-md bg-[#3ee0c5] px-4 py-2 text-sm font-semibold text-[#07090d]">
             Lock
           </button>
         </form>
@@ -156,11 +169,19 @@ function BossForm({
           className="flex flex-col gap-3"
           onSubmit={(e) => {
             e.preventDefault()
+            if (!domain.trim()) {
+              onFail('Domain is empty. Tap [0, 12] (time window of the graph), then Lock.')
+              return
+            }
             if (!intervalsMatch(domain, CISTERN_META.domain)) {
               onFail(
                 'Domain is legal t-values: monitoring runs from 0 through 12 hours, inclusive → [0, 12].',
                 'value',
               )
+              return
+            }
+            if (!range.trim()) {
+              onFail('Range is empty. Tap [20, 80] (lowest to highest volume), then Lock.')
               return
             }
             if (!intervalsMatch(range, CISTERN_META.range)) {
@@ -170,23 +191,25 @@ function BossForm({
             onPass({ intervalNotation: 24 })
           }}
         >
-          <label className="text-sm">
-            Domain
-            <IntervalField
-              value={domain}
-              onChange={setDomain}
-              preset={['[0, 12]', '(0, 12)', '[20, 80]']}
-            />
-          </label>
-          <label className="text-sm">
-            Range
-            <IntervalField
-              value={range}
-              onChange={setRange}
-              preset={['[20, 80]', '[0, 80]', '(20, 80)']}
-            />
-          </label>
-          <button className="rounded-md bg-[#3ee0c5] px-4 py-2 text-sm font-semibold text-[#07090d]">
+          <IntervalField
+            label="Domain"
+            value={domain}
+            onChange={(s) => {
+              onEdit()
+              setDomain(s)
+            }}
+            preset={['[0, 12]', '(0, 12)', '[20, 80]']}
+          />
+          <IntervalField
+            label="Range"
+            value={range}
+            onChange={(s) => {
+              onEdit()
+              setRange(s)
+            }}
+            preset={['[20, 80]', '[0, 80]', '(20, 80)']}
+          />
+          <button type="submit" className="rounded-md bg-[#3ee0c5] px-4 py-2 text-sm font-semibold text-[#07090d]">
             Lock
           </button>
         </form>
@@ -197,34 +220,36 @@ function BossForm({
           className="flex flex-col gap-3"
           onSubmit={(e) => {
             e.preventDefault()
-            if (!intervalsMatch(constant, CISTERN_META.constant)) {
-              onFail('Flat top is closed: V = 80 from t = 4 through t = 8 → [4, 8].')
+            if (!constant.trim() || !intervalsMatch(constant, CISTERN_META.constant)) {
+              onFail('Flat top is closed: V = 80 from t = 4 through t = 8 → [4, 8]. Tap the chip, then Lock.')
               return
             }
-            if (!intervalsMatch(decreasing, CISTERN_META.decreasing)) {
-              onFail('Decreasing after the hold: [8, 12].')
+            if (!decreasing.trim() || !intervalsMatch(decreasing, CISTERN_META.decreasing)) {
+              onFail('Decreasing after the hold: [8, 12]. Tap the chip, then Lock.')
               return
             }
             onPass({ intervalNotation: 18, rateSense: 10 })
           }}
         >
-          <label className="text-sm">
-            Constant
-            <IntervalField
-              value={constant}
-              onChange={setConstant}
-              preset={['[4, 8]', '(4, 8)', '[8, 12]']}
-            />
-          </label>
-          <label className="text-sm">
-            Decreasing
-            <IntervalField
-              value={decreasing}
-              onChange={setDecreasing}
-              preset={['[8, 12]', '[0, 4]', '(8, 12)']}
-            />
-          </label>
-          <button className="rounded-md bg-[#3ee0c5] px-4 py-2 text-sm font-semibold text-[#07090d]">
+          <IntervalField
+            label="Constant"
+            value={constant}
+            onChange={(s) => {
+              onEdit()
+              setConstant(s)
+            }}
+            preset={['[4, 8]', '(4, 8)', '[8, 12]']}
+          />
+          <IntervalField
+            label="Decreasing"
+            value={decreasing}
+            onChange={(s) => {
+              onEdit()
+              setDecreasing(s)
+            }}
+            preset={['[8, 12]', '[0, 4]', '(8, 12)']}
+          />
+          <button type="submit" className="rounded-md bg-[#3ee0c5] px-4 py-2 text-sm font-semibold text-[#07090d]">
             Lock
           </button>
         </form>
@@ -268,21 +293,27 @@ function BossForm({
             <legend className="mono text-xs text-[#8b9bb4]">t = 0 to t = 4</legend>
             <input
               value={r1}
-              onChange={(e) => setR1(e.target.value)}
+              onChange={(e) => {
+                onEdit()
+                setR1(e.target.value)
+              }}
               inputMode="decimal"
               placeholder="rate"
               className="mt-1 w-full mono rounded-md border border-[#243044] bg-[#0c1118] px-3 py-2"
             />
             <div className="mt-1 flex gap-1">
               {['gal/hr', 'gal', 'hr'].map((u) => (
-                <Chip key={u} on={u1 === u} onClick={() => setU1(u)} label={u} />
+                <Chip key={u} on={u1 === u} onClick={() => { onEdit(); setU1(u) }} label={u} />
               ))}
             </div>
             {AROC_MEANINGS_POS.map((m) => (
               <button
                 type="button"
                 key={m.id}
-                onClick={() => setM1(m.id)}
+                onClick={() => {
+                  onEdit()
+                  setM1(m.id)
+                }}
                 className={`mt-1 w-full rounded border px-2 py-1.5 text-left text-xs ${
                   m1 === m.id ? 'border-[#3ee0c5]' : 'border-[#243044]'
                 }`}
@@ -295,21 +326,27 @@ function BossForm({
             <legend className="mono text-xs text-[#8b9bb4]">t = 8 to t = 12</legend>
             <input
               value={r2}
-              onChange={(e) => setR2(e.target.value)}
+              onChange={(e) => {
+                onEdit()
+                setR2(e.target.value)
+              }}
               inputMode="decimal"
               placeholder="rate"
               className="mt-1 w-full mono rounded-md border border-[#243044] bg-[#0c1118] px-3 py-2"
             />
             <div className="mt-1 flex gap-1">
               {['gal/hr', 'gal', 'hr'].map((u) => (
-                <Chip key={u} on={u2 === u} onClick={() => setU2(u)} label={u} />
+                <Chip key={u} on={u2 === u} onClick={() => { onEdit(); setU2(u) }} label={u} />
               ))}
             </div>
             {AROC_MEANINGS_NEG.map((m) => (
               <button
                 type="button"
                 key={m.id}
-                onClick={() => setM2(m.id)}
+                onClick={() => {
+                  onEdit()
+                  setM2(m.id)
+                }}
                 className={`mt-1 w-full rounded border px-2 py-1.5 text-left text-xs ${
                   m2 === m.id ? 'border-[#3ee0c5]' : 'border-[#243044]'
                 }`}
@@ -318,7 +355,7 @@ function BossForm({
               </button>
             ))}
           </fieldset>
-          <button className="rounded-md bg-[#3ee0c5] px-4 py-2 text-sm font-semibold text-[#07090d]">
+          <button type="submit" className="rounded-md bg-[#3ee0c5] px-4 py-2 text-sm font-semibold text-[#07090d]">
             Lock both
           </button>
         </form>
@@ -341,12 +378,15 @@ function BossForm({
             V(10) in gallons
             <input
               value={vol}
-              onChange={(e) => setVol(e.target.value)}
+              onChange={(e) => {
+                onEdit()
+                setVol(e.target.value)
+              }}
               inputMode="decimal"
               className="mt-1 w-full mono rounded-md border border-[#243044] bg-[#0c1118] px-3 py-2"
             />
           </label>
-          <button className="rounded-md bg-[#3ee0c5] px-4 py-2 text-sm font-semibold text-[#07090d]">
+          <button type="submit" className="rounded-md bg-[#3ee0c5] px-4 py-2 text-sm font-semibold text-[#07090d]">
             Lock
           </button>
         </form>

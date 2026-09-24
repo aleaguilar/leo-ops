@@ -41,7 +41,7 @@ function App() {
   useEffect(() => {
     const t = window.setTimeout(() => {
       setSession((s) => (s && s.glitch !== 'none' ? clearGlitch(s) : s))
-    }, 900)
+    }, 1600)
     return () => window.clearTimeout(t)
   }, [session?.glitch, session?.total])
 

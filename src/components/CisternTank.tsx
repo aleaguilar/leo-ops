@@ -112,9 +112,11 @@ export function CisternTank({
         </text>
       </svg>
       {banner && (
-        <div className="absolute inset-x-0 top-8 mx-2 rounded border border-[#ff4d6d] bg-[#2a0d14]/90 px-2 py-2 text-center">
-          <div className="mono text-[11px] tracking-widest text-[#ff4d6d]">{banner}</div>
-          <div className="mt-1 text-xs text-[#e8eef6]">{glitchMsg}</div>
+        <div className="absolute inset-0 flex items-center justify-center rounded bg-[#2a0d14]/85 px-3">
+          <div className="text-center">
+            <div className="mono text-sm tracking-widest text-[#ff4d6d]">{banner}</div>
+            <div className="mt-2 text-sm text-[#e8eef6]">{glitchMsg}</div>
+          </div>
         </div>
       )}
     </div>
