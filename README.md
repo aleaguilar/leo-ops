@@ -31,6 +31,29 @@ AROC [0, 4] = **15 gal/hr** (filling). AROC [8, 12] = **−10 gal/hr** (draining
 
 ## How Alejandro can open it for Leo
 
+**Chromebook (no npm):** open
+
+**https://leo-ops-rates-production.up.railway.app**
+
+That is a public HTTPS page. Bookmark it. Progress stays in this Chromebook’s browser (`localStorage`).
+
+### Redeploy later (after you change the mission)
+
+```bash
+npm i && npm run build
+python3 scripts/pack-railway-assets.py
+```
+
+Then on Railway project `leo-ops-rates` / service `leo-ops-rates` / environment `production`:
+
+1. Paste every file from the packer’s output dir as env vars named `ASSET_HTML_00`, `ASSET_CSS_00`…, `ASSET_SVG_00`, `ASSET_JS_00`… (chunk size 2800 — stay under Railway’s per-variable cap).
+2. Keep `railway/index.tsx` as the Function source (it gunzips those vars and serves `dist/`).
+3. Redeploy the Function.
+
+Health check: `https://leo-ops-rates-production.up.railway.app/__health` should report non-zero `html`, `css`, `js`, `svg`.
+
+Cloudflare Pages would be simpler (`npx wrangler pages deploy dist`) but this environment has **no `CLOUDFLARE_API_TOKEN` / wrangler login**. Netlify Drop / CLI has **no `NETLIFY_AUTH_TOKEN`**. Do not send those into chat if a Railway redeploy still works.
+
 ### On this project (dev)
 
 Need Node.js 20+. In the project folder:
@@ -41,14 +64,14 @@ npm i && npm run dev
 
 Chrome (or Chromebook) → the local URL Vite prints (this repo’s default is http://localhost:4721).
 
-### Static files (no install after build)
+### Static files (local preview)
 
 ```bash
 npm i && npm run build
 npm run preview
 ```
 
-`dist/` is a static site. Copy that folder to Google Drive / a USB stick / any static host and open `index.html` from a local server (Chrome may block `file://` module loads — use `npm run preview` or any static server).
+`dist/` is the same static site the Railway Function serves.
 
 ### Session flow (~15 min)
 
@@ -70,5 +93,6 @@ Keyboard: Enter to engage, number keys on duel (1 / 2 or A / D), hour chips on t
 | `npm i && npm run dev` | local play |
 | `npm run build` | typecheck + static `dist/` |
 | `npm run preview` | serve `dist/` |
+| `python3 scripts/pack-railway-assets.py` | gzip+base64 `dist/` into Railway env chunks |
 
 See `DEMO.md` for how to verify the three main stages.
