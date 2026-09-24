@@ -39,20 +39,20 @@ That is a public HTTPS page. Bookmark it. Progress stays in this Chromebook’s 
 
 ### Redeploy later (after you change the mission)
 
+The live site is a Railway Function that proxies the Vite `dist/` files from the `leo-ops-assets` bucket.
+
 ```bash
 npm i && npm run build
-python3 scripts/pack-railway-assets.py
+LEO_OPS_UPLOAD_TOKEN='…' python3 scripts/push-railway-dist.py
 ```
 
-Then on Railway project `leo-ops-rates` / service `leo-ops-rates` / environment `production`:
+`LEO_OPS_UPLOAD_TOKEN` is the `UPLOAD_TOKEN` variable on Railway service `leo-ops-rates` (copy it from the Variables tab — do not paste it into chat). Optional: `LEO_OPS_URL` defaults to the public URL above.
 
-1. Paste every file from the packer’s output dir as env vars named `ASSET_HTML_00`, `ASSET_CSS_00`…, `ASSET_SVG_00`, `ASSET_JS_00`… (chunk size 2800 — stay under Railway’s per-variable cap).
-2. Keep `railway/index.tsx` as the Function source (it gunzips those vars and serves `dist/`).
-3. Redeploy the Function.
+Health check: `https://leo-ops-rates-production.up.railway.app/__health` should report `"ok": true` and list `index.html`, the CSS, and the JS.
 
-Health check: `https://leo-ops-rates-production.up.railway.app/__health` should report non-zero `html`, `css`, `js`, `svg`.
+If you change `railway/index.tsx`, push that file as the Function source and redeploy, then run `push-railway-dist.py` again.
 
-Cloudflare Pages would be simpler (`npx wrangler pages deploy dist`) but this environment has **no `CLOUDFLARE_API_TOKEN` / wrangler login**. Netlify Drop / CLI has **no `NETLIFY_AUTH_TOKEN`**. Do not send those into chat if a Railway redeploy still works.
+Cloudflare Pages would be simpler (`npx wrangler pages deploy dist`) but this environment has **no `CLOUDFLARE_API_TOKEN` / wrangler login**. Netlify Drop / CLI has **no `NETLIFY_AUTH_TOKEN`**. Do not send those into chat if a Railway upload still works.
 
 ### On this project (dev)
 
@@ -71,7 +71,7 @@ npm i && npm run build
 npm run preview
 ```
 
-`dist/` is the same static site the Railway Function serves.
+`dist/` is the same static site the Railway Function serves from the bucket.
 
 ### Session flow (~15 min)
 
@@ -93,6 +93,7 @@ Keyboard: Enter to engage, number keys on duel (1 / 2 or A / D), hour chips on t
 | `npm i && npm run dev` | local play |
 | `npm run build` | typecheck + static `dist/` |
 | `npm run preview` | serve `dist/` |
-| `python3 scripts/pack-railway-assets.py` | gzip+base64 `dist/` into Railway env chunks |
+| `python3 scripts/push-railway-dist.py` | PUT `dist/` to the live Function (`LEO_OPS_UPLOAD_TOKEN`) |
+| `python3 scripts/pack-railway-assets.py` | gzip+base64 `dist/` into env chunks (legacy fallback) |
 
 See `DEMO.md` for how to verify the three main stages.

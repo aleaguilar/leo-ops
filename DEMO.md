@@ -1,6 +1,6 @@
 # DEMO — verify the three stages
 
-Open the app (`npm i && npm run dev`), then play as Leo. No backend. Wrong answers should never freeze the session.
+Open the Chromebook URL **https://leo-ops-rates-production.up.railway.app** (or `npm i && npm run dev` locally), then play as Leo. No backend. Wrong answers should never freeze the session. The briefing must show **LEO OPS** and **RATES // average rate of change**.
 
 ## 1. Warm-up (three shots)
 
